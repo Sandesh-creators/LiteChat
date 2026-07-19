@@ -1,0 +1,10 @@
+-keepattributes *Annotation*
+-keep class com.litechat.app.data.db.** { *; }
+-keep class com.litechat.app.data.db.entity.** { *; }
+-keep class com.litechat.app.network.signaling.** { *; }
+-keep class com.litechat.app.data.repository.** { *; }
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-dontwarn javax.annotation.**
+-dontwarn org.webrtc.**
+-keep class org.webrtc.** { *; }
