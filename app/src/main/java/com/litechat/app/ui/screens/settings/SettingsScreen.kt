@@ -11,21 +11,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +43,94 @@ fun SettingsScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
     val viewModel = remember { SettingsViewModel(context.applicationContext as android.app.Application) }
     val state by viewModel.state.collectAsState()
+    var showUsernameDialog by remember { mutableStateOf(false) }
+    var showStatusDialog by remember { mutableStateOf(false) }
+    var showNameDialog by remember { mutableStateOf(false) }
+
+    if (showUsernameDialog) {
+        var newUsername by remember { mutableStateOf(state.username) }
+        AlertDialog(
+            onDismissRequest = { showUsernameDialog = false },
+            title = { Text("Change Username") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = newUsername,
+                        onValueChange = { newUsername = it },
+                        label = { Text("Username") },
+                        singleLine = true,
+                        isError = state.usernameError.isNotEmpty(),
+                        supportingText = {
+                            if (state.usernameError.isNotEmpty()) {
+                                Text(state.usernameError, color = MaterialTheme.colorScheme.error)
+                            } else {
+                                Text("3+ chars, letters, numbers, underscores only")
+                            }
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.changeUsername(newUsername.trim())
+                    if (state.usernameError.isEmpty()) showUsernameDialog = false
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUsernameDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showStatusDialog) {
+        var newStatus by remember { mutableStateOf(state.statusMessage) }
+        AlertDialog(
+            onDismissRequest = { showStatusDialog = false },
+            title = { Text("Change Status") },
+            text = {
+                OutlinedTextField(
+                    value = newStatus,
+                    onValueChange = { newStatus = it },
+                    label = { Text("Status message") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateStatus(newStatus.trim())
+                    showStatusDialog = false
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStatusDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showNameDialog) {
+        var newName by remember { mutableStateOf(state.displayName) }
+        AlertDialog(
+            onDismissRequest = { showNameDialog = false },
+            title = { Text("Change Display Name") },
+            text = {
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = { Text("Display name") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateDisplayName(newName.trim())
+                    showNameDialog = false
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNameDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -45,7 +138,10 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                 title = { Text("Settings") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -61,13 +157,20 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                 .verticalScroll(rememberScrollState())
         ) {
             SettingsSection(title = "Profile") {
-                SettingsItem(
-                    label = "Name",
-                    value = state.userName
+                SettingsClickableItem(
+                    label = "Display Name",
+                    value = state.displayName.ifEmpty { "Not set" },
+                    onClick = { showNameDialog = true }
                 )
-                SettingsItem(
+                SettingsClickableItem(
+                    label = "Username",
+                    value = "@${state.username.ifEmpty { "not set" }}",
+                    onClick = { showUsernameDialog = true }
+                )
+                SettingsClickableItem(
                     label = "Status",
-                    value = state.statusMessage
+                    value = state.statusMessage,
+                    onClick = { showStatusDialog = true }
                 )
             }
 
@@ -90,18 +193,6 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                     checked = state.isAutoDownloadMedia,
                     onToggle = { viewModel.toggleAutoDownload() }
                 )
-                SettingsItem(
-                    label = "Video Quality",
-                    value = state.videoQuality
-                )
-                SettingsItem(
-                    label = "Audio Quality",
-                    value = state.audioQuality
-                )
-                SettingsItem(
-                    label = "Thumbnail Resolution",
-                    value = "${state.maxImageResolution}x${state.maxImageResolution}px"
-                )
             }
 
             SettingsSection(title = "Notifications") {
@@ -114,8 +205,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             }
 
             SettingsSection(title = "About") {
-                SettingsItem(label = "Version", value = "1.0.0")
-                SettingsItem(label = "Build", value = "1")
+                SettingsItem(label = "Version", value = "1.1.0")
+                SettingsItem(label = "Build", value = "2")
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -124,10 +215,7 @@ fun SettingsScreen(onBackClick: () -> Unit) {
 }
 
 @Composable
-private fun SettingsSection(
-    title: String,
-    content: @Composable () -> Unit
-) {
+private fun SettingsSection(title: String, content: @Composable () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -141,36 +229,39 @@ private fun SettingsSection(
 }
 
 @Composable
-private fun SettingsItem(
-    label: String,
-    value: String
-) {
+private fun SettingsItem(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
-        )
+        Text(text = label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(text = value, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
     }
 }
 
 @Composable
-private fun SettingsToggleItem(
-    label: String,
-    description: String,
-    checked: Boolean,
-    onToggle: () -> Unit
-) {
+private fun SettingsClickableItem(label: String, value: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .then(Modifier.padding(0.dp)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            Text(text = value, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+        }
+        TextButton(onClick = onClick) {
+            Text("Change", color = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+@Composable
+private fun SettingsToggleItem(label: String, description: String, checked: Boolean, onToggle: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -179,11 +270,7 @@ private fun SettingsToggleItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = label, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
-            )
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
         }
         Switch(
             checked = checked,

@@ -37,16 +37,9 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun addDemoContacts() {
+    fun addContact(contact: ContactEntity) {
         viewModelScope.launch {
-            val demoContacts = listOf(
-                ContactEntity(id = "user_001", displayName = "Alice Johnson", isRegistered = true),
-                ContactEntity(id = "user_002", displayName = "Bob Smith", isRegistered = true),
-                ContactEntity(id = "user_003", displayName = "Charlie Brown", isRegistered = true),
-                ContactEntity(id = "user_004", displayName = "Diana Prince", isRegistered = true),
-                ContactEntity(id = "user_005", displayName = "Edward Norton", isRegistered = false)
-            )
-            demoContacts.forEach { contactRepo.upsertContact(it) }
+            contactRepo.upsertContact(contact)
         }
     }
 }

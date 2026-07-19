@@ -3,6 +3,7 @@ package com.litechat.app.ui.screens.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.litechat.app.core.di.ServiceLocator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,8 +11,12 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val userProfileRepo = ServiceLocator.provideUserProfileRepository(application)
+
     data class SettingsState(
-        val userName: String = "User",
+        val userName: String = "",
+        val displayName: String = "",
+        val username: String = "",
         val statusMessage: String = "Hey, I'm using LiteChat",
         val isNotificationsEnabled: Boolean = true,
         val isDataSaverEnabled: Boolean = true,
@@ -20,18 +25,73 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val maxImageResolution: Int = 150,
         val videoQuality: String = "360p",
         val audioQuality: String = "Low (6-12 kbps)",
-        val storageUsed: String = "0 MB"
+        val usernameError: String = "",
+        val usernameSuccess: Boolean = false
     )
 
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
-    fun updateUserName(name: String) {
-        _state.value = _state.value.copy(userName = name)
+    init {
+        loadProfile()
     }
 
-    fun updateStatusMessage(status: String) {
+    private fun loadProfile() {
+        viewModelScope.launch {
+            val profile = userProfileRepo.getProfileSync()
+            if (profile != null) {
+                _state.value = _state.value.copy(
+                    displayName = profile.displayName,
+                    username = profile.username,
+                    statusMessage = profile.statusMessage
+                )
+            }
+        }
+    }
+
+    fun updateDisplayName(name: String) {
+        _state.value = _state.value.copy(displayName = name)
+        viewModelScope.launch {
+            userProfileRepo.changeDisplayName(name)
+        }
+    }
+
+    fun changeUsername(newUsername: String) {
+        _state.value = _state.value.copy(usernameError = "", usernameSuccess = false)
+
+        if (newUsername.length < 3) {
+            _state.value = _state.value.copy(usernameError = "Username must be at least 3 characters")
+            return
+        }
+        if (!newUsername.matches(Regex("^[a-zA-Z0-9_]+$"))) {
+            _state.value = _state.value.copy(usernameError = "Only letters, numbers, and underscores allowed")
+            return
+        }
+
+        viewModelScope.launch {
+            val taken = userProfileRepo.isUsernameTakenByOther(newUsername, "")
+            if (taken) {
+                _state.value = _state.value.copy(usernameError = "Username is already taken")
+            } else {
+                val success = userProfileRepo.changeUsername(newUsername)
+                if (success) {
+                    _state.value = _state.value.copy(
+                        username = newUsername,
+                        usernameSuccess = true,
+                        usernameError = ""
+                    )
+                } else {
+                    _state.value = _state.value.copy(usernameError = "Failed to change username")
+                }
+            }
+        }
+    }
+
+    fun updateStatus(status: String) {
         _state.value = _state.value.copy(statusMessage = status)
+        viewModelScope.launch {
+            userProfileRepo.changeStatus(status)
+        }
     }
 
     fun toggleNotifications() {

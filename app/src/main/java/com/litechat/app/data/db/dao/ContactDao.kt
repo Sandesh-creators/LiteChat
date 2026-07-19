@@ -36,6 +36,12 @@ interface ContactDao {
     @Query("UPDATE contacts SET isOnline = :isOnline, lastSeen = :timestamp WHERE id = :contactId")
     suspend fun updateOnlineStatus(contactId: String, isOnline: Boolean, timestamp: Long)
 
-    @Query("SELECT * FROM contacts WHERE displayName LIKE '%' || :query || '%' OR phoneNumber LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM contacts WHERE displayName LIKE '%' || :query || '%' OR username LIKE '%' || :query || '%' OR phoneNumber LIKE '%' || :query || '%'")
     fun searchContacts(query: String): Flow<List<ContactEntity>>
+
+    @Query("SELECT * FROM contacts WHERE username = :username LIMIT 1")
+    suspend fun getContactByUsername(username: String): ContactEntity?
+
+    @Query("SELECT * FROM contacts WHERE username = :username AND id != :excludeId LIMIT 1")
+    suspend fun getContactByUsernameExcluding(username: String, excludeId: String): ContactEntity?
 }

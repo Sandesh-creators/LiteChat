@@ -1,4 +1,4 @@
-package com.litechat.app.ui.screens.contacts
+package com.litechat.app.ui.screens.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,33 +33,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.litechat.app.core.di.ServiceLocator
 import com.litechat.app.ui.components.ContactAvatar
 import com.litechat.app.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContactsScreen(
+fun SearchAccountsScreen(
     onBackClick: () -> Unit,
-    onChatWithContact: (String) -> Unit,
-    onSearchAccounts: () -> Unit = {}
+    onAddContact: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val viewModel = remember { ContactsViewModel(context.applicationContext as android.app.Application) }
-    val contacts by viewModel.contacts.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
+    val contactRepo = remember { ServiceLocator.provideContactRepository(context) }
+    val searchQuery = remember { androidx.compose.runtime.mutableStateOf("") }
+    val contacts by contactRepo.searchContacts(searchQuery.value)
+        .collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Contacts") },
+                title = { Text("Search Accounts") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onSearchAccounts) {
-                        Icon(Icons.Default.PersonAdd, contentDescription = "Search accounts")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -74,50 +70,53 @@ fun ContactsScreen(
                 .padding(padding)
         ) {
             TextField(
-                value = searchQuery,
-                onValueChange = { viewModel.updateSearch(it) },
+                value = searchQuery.value,
+                onValueChange = { searchQuery.value = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Search contacts...") },
+                placeholder = { Text("Search by name, username, or phone...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
-                )
+                ),
+                singleLine = true
             )
 
-            val filteredContacts = contacts.filter {
-                it.displayName.contains(searchQuery, ignoreCase = true) ||
-                    it.username.contains(searchQuery, ignoreCase = true)
-            }
-
-            if (filteredContacts.isEmpty()) {
+            if (searchQuery.value.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = if (searchQuery.isEmpty()) "No contacts yet. Tap + to search for users."
-                               else "No contacts found",
+                        text = "Search for users by name or username",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextSecondary
+                    )
+                }
+            } else if (contacts.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "No accounts found",
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextSecondary
                     )
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(items = filteredContacts, key = { it.id }) { contact ->
+                    items(contacts, key = { it.id }) { contact ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    viewModel.startChatWith(contact) { conversationId ->
-                                        onChatWithContact(conversationId)
-                                    }
-                                }
+                                .clickable { onAddContact(contact.id) }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -139,6 +138,13 @@ fun ContactsScreen(
                                     text = "@${contact.username.ifEmpty { "no_username" }}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            IconButton(onClick = { onAddContact(contact.id) }) {
+                                Icon(
+                                    Icons.Default.PersonAdd,
+                                    contentDescription = "Add contact",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }

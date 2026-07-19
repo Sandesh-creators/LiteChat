@@ -4,7 +4,10 @@ import android.content.Context
 import com.litechat.app.data.db.AppDatabase
 import com.litechat.app.data.repository.ContactRepository
 import com.litechat.app.data.repository.ConversationRepository
+import com.litechat.app.data.repository.GroupRepository
 import com.litechat.app.data.repository.MessageRepository
+import com.litechat.app.data.repository.UserProfileRepository
+import com.litechat.app.data.repository.VoiceRoomRepository
 import com.litechat.app.media.UriManager
 import com.litechat.app.network.signaling.MqttSignalingClient
 import com.litechat.app.network.webrtc.CallManager
@@ -57,5 +60,20 @@ object ServiceLocator {
 
     fun provideContactRepository(context: Context): ContactRepository {
         return ContactRepository(provideDatabase(context).contactDao())
+    }
+
+    fun provideGroupRepository(context: Context): GroupRepository {
+        return GroupRepository(provideDatabase(context).groupDao())
+    }
+
+    fun provideVoiceRoomRepository(context: Context): VoiceRoomRepository {
+        return VoiceRoomRepository(provideDatabase(context).voiceRoomDao())
+    }
+
+    fun provideUserProfileRepository(context: Context): UserProfileRepository {
+        return UserProfileRepository(
+            provideDatabase(context).userProfileDao(),
+            provideDatabase(context).contactDao()
+        )
     }
 }

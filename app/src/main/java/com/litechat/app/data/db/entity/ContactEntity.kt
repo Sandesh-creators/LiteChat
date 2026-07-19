@@ -1,12 +1,17 @@
 package com.litechat.app.data.db.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "contacts")
+@Entity(
+    tableName = "contacts",
+    indices = [Index("username")]
+)
 data class ContactEntity(
     @PrimaryKey val id: String,
     val displayName: String,
+    val username: String = "",
     val phoneNumber: String? = null,
     val email: String? = null,
     val avatarUri: String? = null,

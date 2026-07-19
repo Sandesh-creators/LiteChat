@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -46,7 +47,8 @@ import java.util.Locale
 fun ChatListScreen(
     onChatClick: (String) -> Unit,
     onContactsClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onCreateGroup: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val conversationRepo = remember {
@@ -75,11 +77,20 @@ fun ChatListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onContactsClick,
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "New chat")
+            Column {
+                FloatingActionButton(
+                    onClick = onCreateGroup,
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                ) {
+                    Icon(Icons.Default.Group, contentDescription = "New group")
+                }
+                FloatingActionButton(
+                    onClick = onContactsClick,
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "New chat")
+                }
             }
         }
     ) { padding ->

@@ -53,4 +53,7 @@ interface MessageDao {
 
     @Query("UPDATE messages SET status = :status WHERE id = :messageId AND status != 'PURGED'")
     suspend fun safeUpdateStatus(messageId: String, status: MessageStatus)
+
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY timestamp ASC LIMIT :limit")
+    fun getRecentMessages(conversationId: String, limit: Int = 50): Flow<List<MessageEntity>>
 }

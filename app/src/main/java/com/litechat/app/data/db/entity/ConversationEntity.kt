@@ -18,5 +18,8 @@ data class ConversationEntity(
     val unreadCount: Int = 0,
     val isPinned: Boolean = false,
     val isMuted: Boolean = false,
+    val isGroup: Boolean = false,
+    val groupId: String? = null,
+    val memberCount: Int = 2,
     val createdAt: Long = System.currentTimeMillis()
 )
