@@ -33,7 +33,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("litechat-release.jks")
+            storeFile = rootProject.file("litechat-release.jks")
             storePassword = System.getenv("KEYSTORE_PASS") ?: "Nu!!A\$tr0!!01"
             keyAlias = "litechat"
             keyPassword = System.getenv("KEYSTORE_PASS") ?: "Nu!!A\$tr0!!01"
