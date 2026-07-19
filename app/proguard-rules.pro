@@ -9,6 +9,14 @@
 -dontwarn org.webrtc.**
 -keep class org.webrtc.** { *; }
 -keep class com.litechat.app.network.github.** { *; }
+-keep class com.litechat.app.network.signaling.** { *; }
+-keepattributes kotlinx.serialization.KSerializer
+-keepclassmembers class com.litechat.app.network.signaling.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.litechat.app.network.signaling.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
 -keepattributes kotlinx.serialization.KSerializer
 -keepclassmembers class com.litechat.app.network.github.** {
     *** Companion;

@@ -104,11 +104,13 @@ class MqttSignalingClient(private val context: Context) {
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 Log.d(TAG, "WebSocket closed: $code $reason")
+                this@MqttSignalingClient.webSocket = null
                 onDisconnectedCallback?.invoke()
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 Log.e(TAG, "WebSocket failure: ${t.message}")
+                this@MqttSignalingClient.webSocket = null
                 onDisconnectedCallback?.invoke()
             }
         })

@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,11 +46,11 @@ fun MediaPreview(
         )
     }
 
-    val thumbnail = remember(uri) {
-        kotlinx.coroutines.runBlocking {
-            thumbnailLoader.loadThumbnail(uri)
-        }
+    val thumbnail by produceState<Bitmap?>(null, uri) {
+        value = thumbnailLoader.loadThumbnail(uri)
     }
+
+    val currentThumbnail = thumbnail
 
     Box(
         modifier = modifier
@@ -59,9 +60,9 @@ fun MediaPreview(
             .clickable { onTap() },
         contentAlignment = Alignment.Center
     ) {
-        if (thumbnail != null) {
+        if (currentThumbnail != null) {
             Image(
-                bitmap = thumbnail.asImageBitmap(),
+                bitmap = currentThumbnail.asImageBitmap(),
                 contentDescription = "Media",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

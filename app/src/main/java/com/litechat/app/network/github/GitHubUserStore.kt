@@ -118,7 +118,7 @@ class GitHubUserStore(
                 val responseBody = response.body?.string()
                 responseBody?.let {
                     val jsonResp = JSONObject(it)
-                    val sha = jsonResp.optString("content", "")
+                    val sha = jsonResp.optString("sha", "")
                     cachedSha = sha.ifEmpty { null }
                 }
                 Log.d(TAG, "Pushed user ${user.username} to GitHub")

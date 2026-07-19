@@ -205,8 +205,8 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             }
 
             SettingsSection(title = "About") {
-                SettingsItem(label = "Version", value = "1.1.0")
-                SettingsItem(label = "Build", value = "2")
+                SettingsItem(label = "Version", value = "1.2.0")
+                SettingsItem(label = "Build", value = "3")
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -246,8 +246,7 @@ private fun SettingsClickableItem(label: String, value: String, onClick: () -> U
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp)
-            .then(Modifier.padding(0.dp)),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {

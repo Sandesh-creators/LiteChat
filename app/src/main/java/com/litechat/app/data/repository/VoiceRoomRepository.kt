@@ -79,13 +79,6 @@ class VoiceRoomRepository(private val voiceRoomDao: VoiceRoomDao) {
         voiceRoomDao.updateRoomStatus(roomId, VoiceRoomStatus.ENDED, System.currentTimeMillis())
     }
 
-    suspend fun getActiveRoomForGroup(groupId: String): VoiceRoomEntity? {
-        return voiceRoomDao.getAllActiveRooms().let { flow ->
-            var room: VoiceRoomEntity? = null
-            flow.collect { rooms ->
-                room = rooms.firstOrNull { it.groupId == groupId }
-            }
-            room
-        }
-    }
+    fun getActiveRoomForGroup(groupId: String): Flow<List<VoiceRoomEntity>> =
+        voiceRoomDao.getActiveRoomsForGroup(groupId)
 }

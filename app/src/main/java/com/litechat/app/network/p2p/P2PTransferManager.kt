@@ -2,6 +2,7 @@ package com.litechat.app.network.p2p
 
 import android.content.Context
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.litechat.app.core.security.CryptoManager
 import com.litechat.app.media.UriManager
@@ -57,7 +58,7 @@ class P2PTransferManager(
             val outputStream = socket.getOutputStream()
 
             context.contentResolver.openInputStream(fileUri)?.use { inputStream ->
-                val fileSize = inputStream.available().toLong()
+                val fileSize = getFileSize(fileUri)
                 _transferState.value = TransferProgress(transferId, TransferState.TRANSFERRING, 0, fileSize)
 
                 sendHeader(outputStream, fileSize, fileUri)
@@ -155,6 +156,22 @@ class P2PTransferManager(
             serverSocket?.close()
         } catch (e: Exception) {
             Log.e(TAG, "Stop server error: ${e.message}")
+        }
+    }
+
+    private fun getFileSize(uri: Uri): Long {
+        return try {
+            val pfd: ParcelFileDescriptor? = context.contentResolver.openFileDescriptor(uri, "r")
+            val size = pfd?.statSize ?: 0L
+            pfd?.close()
+            if (size > 0) size else 0L
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not get file size via ParcelFileDescriptor, falling back to available()")
+            try {
+                context.contentResolver.openInputStream(uri)?.use { it.available().toLong() } ?: 0L
+            } catch (e2: Exception) {
+                0L
+            }
         }
     }
 }

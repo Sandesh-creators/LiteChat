@@ -31,6 +31,24 @@ object ServiceLocator {
     @Volatile
     private var gitHubUserStore: GitHubUserStore? = null
 
+    @Volatile
+    private var messageRepository: MessageRepository? = null
+
+    @Volatile
+    private var conversationRepository: ConversationRepository? = null
+
+    @Volatile
+    private var contactRepository: ContactRepository? = null
+
+    @Volatile
+    private var groupRepository: GroupRepository? = null
+
+    @Volatile
+    private var voiceRoomRepository: VoiceRoomRepository? = null
+
+    @Volatile
+    private var userProfileRepository: UserProfileRepository? = null
+
     fun provideDatabase(context: Context): AppDatabase {
         return database ?: synchronized(this) {
             AppDatabase.getInstance(context).also { database = it }
@@ -64,30 +82,42 @@ object ServiceLocator {
     }
 
     fun provideMessageRepository(context: Context): MessageRepository {
-        return MessageRepository(provideDatabase(context).messageDao())
+        return messageRepository ?: synchronized(this) {
+            MessageRepository(provideDatabase(context).messageDao()).also { messageRepository = it }
+        }
     }
 
     fun provideConversationRepository(context: Context): ConversationRepository {
-        return ConversationRepository(provideDatabase(context).conversationDao())
+        return conversationRepository ?: synchronized(this) {
+            ConversationRepository(provideDatabase(context).conversationDao()).also { conversationRepository = it }
+        }
     }
 
     fun provideContactRepository(context: Context): ContactRepository {
-        return ContactRepository(provideDatabase(context).contactDao())
+        return contactRepository ?: synchronized(this) {
+            ContactRepository(provideDatabase(context).contactDao()).also { contactRepository = it }
+        }
     }
 
     fun provideGroupRepository(context: Context): GroupRepository {
-        return GroupRepository(provideDatabase(context).groupDao())
+        return groupRepository ?: synchronized(this) {
+            GroupRepository(provideDatabase(context).groupDao()).also { groupRepository = it }
+        }
     }
 
     fun provideVoiceRoomRepository(context: Context): VoiceRoomRepository {
-        return VoiceRoomRepository(provideDatabase(context).voiceRoomDao())
+        return voiceRoomRepository ?: synchronized(this) {
+            VoiceRoomRepository(provideDatabase(context).voiceRoomDao()).also { voiceRoomRepository = it }
+        }
     }
 
     fun provideUserProfileRepository(context: Context): UserProfileRepository {
-        return UserProfileRepository(
-            provideDatabase(context).userProfileDao(),
-            provideDatabase(context).contactDao(),
-            provideGitHubUserStore()
-        )
+        return userProfileRepository ?: synchronized(this) {
+            UserProfileRepository(
+                provideDatabase(context).userProfileDao(),
+                provideDatabase(context).contactDao(),
+                provideGitHubUserStore()
+            ).also { userProfileRepository = it }
+        }
     }
 }

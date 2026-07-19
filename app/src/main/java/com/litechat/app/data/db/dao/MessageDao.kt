@@ -40,6 +40,9 @@ interface MessageDao {
     @Query("UPDATE messages SET status = :newStatus WHERE status = :oldStatus")
     suspend fun bulkUpdateStatus(oldStatus: MessageStatus, newStatus: MessageStatus)
 
+    @Query("UPDATE messages SET status = :newStatus WHERE status = :oldStatus AND timestamp < :beforeTimestamp")
+    suspend fun bulkUpdateOldMessages(beforeTimestamp: Long, oldStatus: MessageStatus, newStatus: MessageStatus)
+
     @Query("SELECT COUNT(*) FROM messages WHERE conversationId = :conversationId AND status != :status")
     suspend fun countUndelivered(conversationId: String, status: MessageStatus = MessageStatus.DELIVERED): Int
 

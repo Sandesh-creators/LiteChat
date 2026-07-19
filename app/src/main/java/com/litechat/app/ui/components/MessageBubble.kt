@@ -24,6 +24,7 @@ import com.litechat.app.data.db.entity.MessageEntity
 import com.litechat.app.data.db.entity.MessageStatus
 import com.litechat.app.ui.theme.StatusDelivered
 import com.litechat.app.ui.theme.StatusPending
+import com.litechat.app.ui.theme.StatusPurged
 import com.litechat.app.ui.theme.StatusSent
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -92,7 +93,7 @@ private fun StatusIcon(status: MessageStatus) {
         MessageStatus.SENT_TO_QUEUE -> Icons.Default.Check to StatusSent
         MessageStatus.STREAMING -> Icons.Default.Check to StatusSent
         MessageStatus.DELIVERED -> Icons.Default.CheckCircle to StatusDelivered
-        MessageStatus.PURGED -> Icons.Default.CheckCircle to StatusDelivered
+        MessageStatus.PURGED -> Icons.Default.CheckCircle to StatusPurged
     }
     Icon(
         imageVector = icon,

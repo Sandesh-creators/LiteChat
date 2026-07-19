@@ -86,7 +86,7 @@ class GroupRepository(private val groupDao: GroupDao) {
         }
     }
 
-    suspend fun getMembers(groupId: String): Flow<List<GroupMemberEntity>> =
+    fun getMembers(groupId: String): Flow<List<GroupMemberEntity>> =
         groupDao.getGroupMembers(groupId)
 
     suspend fun getMemberCount(groupId: String): Int = groupDao.getMemberCount(groupId)

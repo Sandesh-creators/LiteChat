@@ -10,6 +10,8 @@ import com.litechat.app.data.db.entity.MessageType
 import com.litechat.app.network.signaling.MqttSignalingClient
 import com.litechat.app.network.signaling.SignalingMessage
 import com.litechat.app.network.signaling.SignalingType
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +36,8 @@ class ChatViewModel(
 
     private val _isTyping = MutableStateFlow(false)
     val isTyping: StateFlow<Boolean> = _isTyping.asStateFlow()
+
+    private var typingTimeoutJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -117,9 +121,12 @@ class ChatViewModel(
                 }
 
                 if (signaling.type == SignalingType.TYPING) {
+                    typingTimeoutJob?.cancel()
                     _isTyping.value = true
-                    kotlinx.coroutines.delay(3000)
-                    _isTyping.value = false
+                    typingTimeoutJob = launch {
+                        delay(3000)
+                        _isTyping.value = false
+                    }
                 }
             }
         }

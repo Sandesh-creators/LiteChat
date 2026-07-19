@@ -46,6 +46,8 @@ import com.litechat.app.data.db.entity.ContactEntity
 import com.litechat.app.network.github.GitHubUserEntry
 import com.litechat.app.ui.components.ContactAvatar
 import com.litechat.app.ui.theme.TextSecondary
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +63,7 @@ fun SearchAccountsScreen(
     var results by remember { mutableStateOf<List<GitHubUserEntry>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var hasSearched by remember { mutableStateOf(false) }
+    var searchJob by remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -208,11 +211,15 @@ fun SearchAccountsScreen(
     }
 
     LaunchedEffect(searchQuery) {
+        searchJob?.cancel()
         if (searchQuery.length >= 2) {
-            isLoading = true
-            hasSearched = true
-            results = gitHubUserStore.searchUsers(searchQuery)
-            isLoading = false
+            searchJob = scope.launch {
+                delay(300)
+                isLoading = true
+                hasSearched = true
+                results = gitHubUserStore.searchUsers(searchQuery)
+                isLoading = false
+            }
         } else if (searchQuery.isEmpty()) {
             hasSearched = false
             results = emptyList()

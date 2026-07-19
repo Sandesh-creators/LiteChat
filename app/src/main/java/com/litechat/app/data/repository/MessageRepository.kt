@@ -51,6 +51,6 @@ class MessageRepository(private val messageDao: MessageDao) {
     }
 
     suspend fun purgeOldMessages(beforeTimestamp: Long) {
-        messageDao.bulkUpdateStatus(MessageStatus.DELIVERED, MessageStatus.PURGED)
+        messageDao.bulkUpdateOldMessages(beforeTimestamp, MessageStatus.DELIVERED, MessageStatus.PURGED)
     }
 }
