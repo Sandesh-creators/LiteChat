@@ -14,7 +14,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val userProfileRepo = ServiceLocator.provideUserProfileRepository(application)
 
     data class SettingsState(
-        val userName: String = "",
         val displayName: String = "",
         val username: String = "",
         val statusMessage: String = "Hey, I'm using LiteChat",
@@ -69,7 +68,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
 
         viewModelScope.launch {
-            val taken = userProfileRepo.isUsernameTakenByOther(newUsername, "")
+            val profile = userProfileRepo.getProfileSync()
+            val myUserId = profile?.id ?: ""
+            val taken = userProfileRepo.isUsernameTakenByOther(newUsername, myUserId)
             if (taken) {
                 _state.value = _state.value.copy(usernameError = "Username is already taken")
             } else {

@@ -8,3 +8,11 @@
 -dontwarn javax.annotation.**
 -dontwarn org.webrtc.**
 -keep class org.webrtc.** { *; }
+-keep class com.litechat.app.network.github.** { *; }
+-keepattributes kotlinx.serialization.KSerializer
+-keepclassmembers class com.litechat.app.network.github.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.litechat.app.network.github.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}

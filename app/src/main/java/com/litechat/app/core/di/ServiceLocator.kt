@@ -1,6 +1,7 @@
 package com.litechat.app.core.di
 
 import android.content.Context
+import com.litechat.app.BuildConfig
 import com.litechat.app.data.db.AppDatabase
 import com.litechat.app.data.repository.ContactRepository
 import com.litechat.app.data.repository.ConversationRepository
@@ -9,6 +10,7 @@ import com.litechat.app.data.repository.MessageRepository
 import com.litechat.app.data.repository.UserProfileRepository
 import com.litechat.app.data.repository.VoiceRoomRepository
 import com.litechat.app.media.UriManager
+import com.litechat.app.network.github.GitHubUserStore
 import com.litechat.app.network.signaling.MqttSignalingClient
 import com.litechat.app.network.webrtc.CallManager
 
@@ -25,6 +27,9 @@ object ServiceLocator {
 
     @Volatile
     private var uriManager: UriManager? = null
+
+    @Volatile
+    private var gitHubUserStore: GitHubUserStore? = null
 
     fun provideDatabase(context: Context): AppDatabase {
         return database ?: synchronized(this) {
@@ -47,6 +52,14 @@ object ServiceLocator {
     fun provideUriManager(context: Context): UriManager {
         return uriManager ?: synchronized(this) {
             UriManager(context).also { uriManager = it }
+        }
+    }
+
+    fun provideGitHubUserStore(): GitHubUserStore {
+        return gitHubUserStore ?: synchronized(this) {
+            GitHubUserStore(
+                token = BuildConfig.GITHUB_TOKEN
+            ).also { gitHubUserStore = it }
         }
     }
 
@@ -73,7 +86,8 @@ object ServiceLocator {
     fun provideUserProfileRepository(context: Context): UserProfileRepository {
         return UserProfileRepository(
             provideDatabase(context).userProfileDao(),
-            provideDatabase(context).contactDao()
+            provideDatabase(context).contactDao(),
+            provideGitHubUserStore()
         )
     }
 }
